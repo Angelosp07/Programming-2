@@ -3,7 +3,7 @@ def initialise_board(size=8):
     D = "Dark "
     N = "None "
 
-    board = [[]]
+    board = []
 
     for i in range(size):
         row = []
@@ -11,7 +11,14 @@ def initialise_board(size=8):
         for j in range(size):
 
             row.append(N)
-            board.append(row)
+        board.append(row)
+
+
+    board[3][3] = L
+    board[3][4] = D
+    board[4][3] = D
+    board[4][4] = L
+    return board
 
 b = initialise_board()
 print(b)
