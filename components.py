@@ -33,6 +33,19 @@ def print_board(board):
         
         print("".join(R))
 
+def legal_move(colour, coordinate, board):
+
+    #coords valid?
+
+    #square occupied?
+    def occupied(square):
+        if square == "None ":
+            return False
+
+    #check directions
+    
+
+    #check if flanking
 
 
 
