@@ -25,7 +25,3 @@ def cli_coords_input():
         
 
     return (x,y)
-
-
-
-cli_coords_input()
