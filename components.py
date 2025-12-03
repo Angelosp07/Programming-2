@@ -101,5 +101,5 @@ def legal_move(colour, coordinate, board):
 
 
 board = initialise_board()
-test = legal_move("Light",(6,4),board)
+test = legal_move("Light",(6,5),board)
 print(test)
