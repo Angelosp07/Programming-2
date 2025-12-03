@@ -33,21 +33,73 @@ def print_board(board):
         
         print("".join(R))
 
+
 def legal_move(colour, coordinate, board):
-
-    #coords valid?
-
-    #square occupied?
-    def occupied(square):
-        if square == "None ":
-            return False
-
-    #check directions
+    x = coordinate[0]
+    y = coordinate[1]
     
 
-    #check if flanking
+#determine opponent
+    if colour.strip() == "Dark":
+        opponent = "Light"
+    else:
+        opponent = "Dark"
+
+#represents vector translations
+    vectors = [
+        (-1,-1), (-1,0), (-1,1),
+        (0, -1),         (0, 1),
+        (1, -1), (1, 0), (1, 1)
+        ]
+    
+
+#validate coordinates
+    if x < 1 or x > 8 or y < 1 or y > 8:
+        return False
+    
+#validate chosen square
+    if board[x-1][y-1] != "None ":
+        return False
 
 
+#main part
+    # for each vector transformation
+    for (i, j) in vectors:
+
+        #move in that direction
+        row = x-1 + i
+        col = y-1 + j
+        found_opponent = False
+
+        #while still inside board, check along the whole direction to see if flanking
+        while row >= 0 and row < 8 and col >= 0 and col < 8:
+            square = board[row][col].strip()
+
+            #only three outcomes for each piece in direction:
+
+            #if oppenent piece encountered
+            if square == opponent:
+                found_opponent = True
+            
+            #if own piece encountereed
+            elif square == colour.strip():
+                #(and flanking)
+                if found_opponent == True:
+                    return True
+                break
+
+            #if empty square
+            else:
+                break
+        
+            #move to next square in direction
+            row += i
+            col += j
+
+    #if no directions flank the oppenent piece:
+    return False
 
 
-print_board(initialise_board())
+board = initialise_board()
+test = legal_move("Light",(6,4),board)
+print(test)
