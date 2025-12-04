@@ -1,3 +1,8 @@
+light = "Light"
+dark = "Dark "
+none = "None "
+
+
 def initialise_board(size=8):
     board = []
 
@@ -5,45 +10,55 @@ def initialise_board(size=8):
         row = []
 
         for j in range(size):
-            row.append("None ")
+            row.append(none)
         board.append(row)
 
 
-    board[3][3] = "Light"
-    board[3][4] = "Dark "
-    board[4][3] = "Dark "
-    board[4][4] = "Light"
+    board[3][3] = light
+    board[3][4] = dark 
+    board[4][3] = dark
+    board[4][4] = light
     return board
 
 
 #Create a function called print_board that accepts a board as an argument and prints an ascii representation of the board state to the command line.
 
 def print_board(board):
+    top_nums = " |"
+    for i in range(1, len(board) + 1):
+        top_nums += "[" + str(i) + "]"
+    
+    print(top_nums)
 
+    side_nums = 1
     for row in board:
-        R = []
+        R = ""
 
         for square in row:
-            if square == "None ":
-                R.append("[ ]")
-            elif square == "Light":
-                R.append("[O]")
-            elif square == "Dark ":
-                R.append("[*]")
+            if square == none:
+                R += "[ ]"
+            elif square == light:
+                R += "[O]"
+            elif square == dark:
+                R += "[*]"
         
-        print("".join(R))
+        print(str(side_nums)+"|" + R)
+        side_nums +=1
 
 
 def legal_move(colour, coordinate, board):
-    x = coordinate[0]
-    y = coordinate[1]
+    x = coordinate[0] - 1
+    y = coordinate[1] - 1
     
+#validate coordinates
+    if x < 0 or x > 7 or y < 0 or y > 7:
+        return False
 
 #determine opponent
-    if colour.strip() == "Dark":
-        opponent = "Light"
+    if colour == dark:
+        opponent = light
     else:
-        opponent = "Dark"
+        opponent = dark
 
 #represents vector translations
     vectors = [
@@ -51,14 +66,9 @@ def legal_move(colour, coordinate, board):
         (0, -1),         (0, 1),
         (1, -1), (1, 0), (1, 1)
         ]
-    
 
-#validate coordinates
-    if x < 1 or x > 8 or y < 1 or y > 8:
-        return False
-    
 #validate chosen square
-    if board[x-1][y-1] != "None ":
+    if board[y][x] != none:
         return False
 
 
@@ -67,13 +77,13 @@ def legal_move(colour, coordinate, board):
     for (i, j) in vectors:
 
         #move in that direction
-        row = x-1 + i
-        col = y-1 + j
+        xx = x + i
+        yy = y + j
         found_opponent = False
 
         #while still inside board, check along the whole direction to see if flanking
-        while row >= 0 and row < 8 and col >= 0 and col < 8:
-            square = board[row][col].strip()
+        while xx >= 0 and xx < 8 and yy >= 0 and yy < 8:
+            square = board[yy][xx]
 
             #only three outcomes for each piece in direction:
 
@@ -82,24 +92,18 @@ def legal_move(colour, coordinate, board):
                 found_opponent = True
             
             #if own piece encountereed
-            elif square == colour.strip():
+            elif square == colour:
                 #(and flanking)
-                if found_opponent == True:
+                if found_opponent:
                     return True
                 break
 
             #if empty square
             else:
                 break
-        
             #move to next square in direction
-            row += i
-            col += j
+            xx += i
+            yy += j
 
     #if no directions flank the oppenent piece:
     return False
-
-
-board = initialise_board()
-test = legal_move("Light",(6,5),board)
-print(test)
