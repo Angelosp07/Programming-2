@@ -1,3 +1,5 @@
+import random
+
 light = "Light"
 dark = "Dark "
 none = "None "
@@ -167,3 +169,56 @@ def calculate_winner(board):
         winner = none
 
     return light_num, dark_num, winner
+
+# AI MOVES SECTION
+
+def find_possible_squares(board, colour=light):
+    possible_squares = []
+    for x in range(1, 9):
+        for y in range(1, 9):
+            if legal_move(colour, (x, y), board):
+                possible_squares.append((x, y))
+    return possible_squares
+
+def count_flipped(board_before, board_after, colour=light):
+    flipped = 0
+    for x in range(8):
+        for y in range(8):
+            #counts flipped pieces, ignoring "none " squares
+            if board_before[y][x] != colour and board_after[y][x] == colour:
+                flipped += 1
+    return flipped
+
+def ai_move(board, colour=light):
+    possible_squares = find_possible_squares(board)
+
+    if len(possible_squares) == 0:
+        return None
+    
+    best_square = None
+    best_score = 0
+
+    #evaluate move for each possible square
+    for square in possible_squares:
+
+        #create copy of board
+        new_board = []
+        for row in board:
+            new_row = list(row)
+            new_board.append(new_row)
+
+        #apply move
+        flip_pieces(colour, square, new_board)
+
+        flipped = count_flipped(board, new_board)
+
+        #change score randomly by (0-1), giving player a slight advantage
+        current_score = flipped + random.random()
+
+        #record best score and corresponding square
+        if current_score > best_score:
+            best_score = current_score
+            best_square = square
+
+    return best_square
+

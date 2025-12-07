@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request
-from components import initialise_board, flip_pieces, legal_move_exists, legal_move, calculate_winner, light, dark, none
+from components import initialise_board, flip_pieces, legal_move_exists, legal_move, calculate_winner, ai_move, light, dark, none
 import json
+import time
 
 app = Flask(__name__)
 
@@ -35,31 +36,36 @@ def move():
     #check legality of move
     if legal_move(current_colour, (x, y), board) == False:
         return {'status': 'fail', 'board': board, 'message': 'Illegal move!'}
-
-    #flip pieces
-    flip_pieces(current_colour, (x,y), board)
-
-    #switch player
-    if current_colour == dark:
-        current_colour = light
     else:
-        current_colour = dark
+        flip_pieces(current_colour, (x,y), board)
 
-    #check legal move exists for current player, if not pass turn
-    if legal_move_exists(board, current_colour) == False:
+        current_colour = light
 
-        #passing turn
-        if current_colour == dark:
-            current_colour = light
-        else:
+    #if game still in play do ai's turn
+    if finished == False:
+        ai_square = ai_move(board)
+        if ai_square != None:
+            time.sleep(0.20)
+            flip_pieces(light, ai_square, board)
+            #switch players if ai makes move
             current_colour = dark
 
-        #check legal move exists for passed player, if not game over
+
+    #check legal move exists for human if not check ai
+    if legal_move_exists(board, dark) == False:
+
+        #check legal move exists for ai, if not game over
         if legal_move_exists(board, current_colour) == False:
             finished = True
             light_num, dark_num, winner = calculate_winner(board)
             msg = "Winner is " + winner + " | Light: " + str(light_num) + " | Dark: " + str(dark_num)
             return {'finished': 'Game Over', 'board': board, 'message': msg}
+        
+        #if ai can move it has another turn
+        current_colour = light
+    else:
+        # humans turn
+        current_colour = dark
 
 
     return {'status': 'success', 'board': board, 'player': current_colour}
