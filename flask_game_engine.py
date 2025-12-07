@@ -1,11 +1,13 @@
 from flask import Flask, render_template, request
-from components import initialise_board, flip_pieces, legal_move_exists, legal_move,  light, dark, none
+from components import initialise_board, flip_pieces, legal_move_exists, legal_move, calculate_winner, light, dark, none
+import json
 
 app = Flask(__name__)
 
 board = initialise_board()
 current_colour = dark
 finished = False
+game_file = "othello_game_file.json"
 
 @app.route('/')
 def index():
@@ -21,9 +23,6 @@ def index():
 def move():
 
     global board, current_colour, finished
-
-    if finished:
-        return {'status': 'fail', 'message': 'Game is finished.', 'board': board}
 
     # get coords
     try:
@@ -58,9 +57,45 @@ def move():
         #check legal move exists for passed player, if not game over
         if legal_move_exists(board, current_colour) == False:
             finished = True
-            return {'finished': 'Game Over', 'board': board}
+            light_num, dark_num, winner = calculate_winner(board)
+            msg = "Winner is " + winner + " | Light: " + str(light_num) + " | Dark: " + str(dark_num)
+            return {'finished': 'Game Over', 'board': board, 'message': msg}
+
 
     return {'status': 'success', 'board': board, 'player': current_colour}
+
+#additional restart board functionality
+@app.route('/restart')
+def restart():
+    global board, current_colour, finished
+    board = initialise_board()
+    current_colour = dark
+    finished = False
+    return {"status": "success", "board": board, "player": current_colour, "message": "Game state restarted"}
+
+#save game state into json file
+@app.route('/save')
+def save():
+    global board, current_colour
+
+    data = {'board': board, 'current_colour': current_colour}
+    with open(game_file, "w") as file:
+        json.dump(data, file)
+    return {'status': 'success', 'message': 'Game state saved'}
+
+#attempt to load game state
+@app.route('/load')
+def load():
+    global board, current_colour
+    try:
+        with open(game_file, "r") as file:
+            data = json.load(file)
+        board = data["board"]
+        current_colour = data["current_colour"]
+        return {'status': 'success', "board": board, "player": current_colour, 'message': 'Game state loaded'}
+    except:
+        return {'status': 'fail', 'message': 'Game state not found'}
+
 
 
 if __name__ == "__main__":

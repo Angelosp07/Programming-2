@@ -2,7 +2,6 @@ light = "Light"
 dark = "Dark "
 none = "None "
 
-
 def initialise_board(size=8):
     board = []
 
@@ -19,32 +18,6 @@ def initialise_board(size=8):
     board[4][3] = dark
     board[4][4] = light
     return board
-
-
-#Create a function called print_board that accepts a board as an argument and prints an ascii representation of the board state to the command line.
-
-def print_board(board):
-    top_nums = " |"
-    for i in range(1, len(board) + 1):
-        top_nums += "[" + str(i) + "]"
-    
-    print(top_nums)
-
-    side_nums = 1
-    for row in board:
-        R = ""
-
-        for square in row:
-            if square == none:
-                R += "[ ]"
-            elif square == light:
-                R += "[O]"
-            elif square == dark:
-                R += "[*]"
-        
-        print(str(side_nums)+"|" + R)
-        side_nums +=1
-
 
 def legal_move(colour, coordinate, board):
     x = coordinate[0] - 1
@@ -70,7 +43,6 @@ def legal_move(colour, coordinate, board):
 #validate chosen square
     if board[y][x] != none:
         return False
-
 
 #main part
     # for each vector transformation
@@ -107,101 +79,6 @@ def legal_move(colour, coordinate, board):
 
     #if no directions flank the oppenent piece:
     return False
-
-def cli_coords_input():
-
-    x = 0
-    y = 0
-    print("")
-    print("Please input the coordinates of your move")
-    print("")
-
-    #check range
-    while x < 1 or x > 8 :
-        print("Input the x coordinate (1-8 inclusive)")
-
-        try:
-            x = int(input())
-        except ValueError:
-            print("Not an integer")
-            print("")
-            x = 0
-
-    while y < 1 or y > 8:
-        print("Input the y coordinate (1-8 inclusive)")
-
-        try:
-            y = int(input())
-        except ValueError:
-            print("Not an integer")
-            print("")
-            y = 0
-        
-
-    return (x,y)
-
-def simple_game_loop():
-
-    #start game with welcome message
-    print("Welcome to Othello!")
-    print("")
-    print("Dark (*) goes first")
-
-    #initialise the board, set first player
-    board = initialise_board()
-    current_colour = dark
-
-    #setting move counter to 60
-    move_counter = 60
-
-
-    while move_counter > 0:
-        print_board(board)
-        print(current_colour, "is the current player.")
-
-        #check legal move exists for current player, if not pass turn
-        if legal_move_exists(board, current_colour) == False:
-            print("No legal moves for", current_colour)
-            print("Passing turn...")
-            if current_colour == dark:
-                current_colour = light
-            else:
-                current_colour = dark
-            print("")
-            print("Current colour is", current_colour)
-
-            #check legal move exists for passed player, if not game over
-            if legal_move_exists(board, current_colour) == False:
-                print("No legal moves for either player...")
-                print("")
-                display_winner(board)
-                break
-            continue
-
-        #make sure user enters legal move
-        (x, y) = (0, 0)
-        while legal_move(current_colour, (x, y), board) == False:
-
-            (x, y) = cli_coords_input()
-            if legal_move(current_colour, (x, y), board) == False:
-                print("")
-                print("ILLEGAL MOVE. TRY AGAIN")
-                print("")
-                print_board(board)
-                print("")
-
-        #flips pieces
-        flip_pieces(current_colour, (x, y), board)
-        move_counter -= 1
-
-        if current_colour == dark:
-            current_colour = light
-        else:
-            current_colour = dark
-    
-    
-    display_winner(board)
-
 
 def flip_pieces(colour, coordinate, board):
     x = coordinate[0] - 1
@@ -270,11 +147,11 @@ def legal_move_exists(board, colour):
                 return True
     return False
 
-def display_winner(board):
+def calculate_winner(board):
     light_num = 0
     dark_num = 0
-
-    #
+    winner = ""
+    
     for row in board:
         for square in row:
             if square == light:
@@ -282,23 +159,11 @@ def display_winner(board):
             elif square == dark:
                 dark_num += 1
 
-    print_board(board)
-    print("")
-    print("GAME OVER")
-    print("")
-    print("THE WINNER IS")
-
     if light_num > dark_num:
-        print("LIGHT!!!")
+        winner = light
     elif dark_num > light_num:
-        print("DARK!!!")
+        winner = dark
     else:
-        print("NEITHER...")
-        print("ITS A DRAW!!!")
+        winner = none
 
-    print(light_num)
-    print(dark_num)
-
-
-if __name__ == "__main__":
-    simple_game_loop()
+    return light_num, dark_num, winner

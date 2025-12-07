@@ -15,7 +15,7 @@
             grid-template-columns: repeat({{game_board|length}}, 60px);
             grid-template-rows: repeat({{game_board|length}}, 60px);
             gap: 2px;
-            background: #006400;
+            background: #241a0f;
             padding: 10px;
             width: fit-content;
             margin: 40px auto;
@@ -23,7 +23,7 @@
         .cell {
             width: 60px;
             height: 60px;
-            background: #228B22;
+            background: #cccccc;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -38,10 +38,10 @@
             border-radius: 50%;
         }
         .black {
-            background: #222;
+            background: #964d22;
         }
         .white {
-            background: #fff;
+            background: #eedc97;
             border: 1px solid #222;
         }
         #messageBox{
@@ -50,6 +50,17 @@
             white-space: pre-line; /* Preserve line breaks */
             line-height: 1em; /* Adjust as needed */
         }
+        #buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+        #buttons button {
+            width: 250px;
+            height: 60px;
+        }
+
     </style>
     <script>
         //Get the board that is passed from the python flask code
@@ -92,7 +103,7 @@
                     board = data['board'];
                     //Reload the board
                     loadBoard();        
-                    document.getElementById('messageBox').innerHTML = data['finished'].toString();
+                    document.getElementById('messageBox').innerHTML = data['message'].toString();
                     alert(data['finished'].toString());
                 }
             })
@@ -124,15 +135,66 @@
             messageBox.innerHTML += message + '\n';
             messageBox.scrollTop = messageBox.scrollHeight; // Auto-scroll to the bottom
         }
+
+        //extra functionality i thought was needed
+        function restartGame() {
+            fetch('/restart')
+            .then(response => response.json())
+            .then(data => {
+                if (data['status'] === "success") {
+                    board = data["board"];
+                    current_colour = data["player"];
+                    loadBoard()
+                    updateMessageBox(data['message'] + " | It's " + data['player'] + "'s turn.");
+                } 
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        }
+
+        // functionality for save button, connected to flask
+        function saveGame() {
+            fetch('/save')
+            .then(response => response.json())
+            .then(data => updateMessageBox(data['message']))
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        }
+
+        // functionality fornload button, connected to flask
+        function loadGame() {
+            fetch('/load')
+            .then(response => response.json())
+            .then(data => {
+                if (data['status'] === "success") {
+                    board = data["board"];
+                    current_colour = data["player"];
+                    loadBoard()
+                    updateMessageBox(data['message'] + " | It's " + data['player'] + "'s turn.");
+                } else {
+                    updateMessageBox(data['message']);
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        }
+        
+        
+        
+
+         
     </script>
 </head>
 <body>
-    <h1 style="text-align:center;">Othello/Reversi Game</h1>
+    <h1 style="text-align:center;">Angelos's Othello/Reversi Game</h1>
     <div class="container">
         <div class="board_grid">
             {% for i in range(game_board|length) %}
                 {% for j in range(game_board|length) %}
-                    <div class="cell" id = "cell-{{ j }}-{{ i }}" onclick="sendMove({{ j+1 }}, {{ i+1 }}, &#39;/move&#39;)">
+                    <div class="cell" id="cell-{{ j }}-{{ i }}" onclick="sendMove({{ j+1 }}, {{ i+1 }}, '/move')">
                         {% if game_board[i][j] == 'Dark ' %}
                             <div class="piece black"></div>
                         {% elif game_board[i][j] == 'Light' %}
@@ -142,7 +204,15 @@
                 {% endfor %}
             {% endfor %}
         </div>
+
+        <div id="buttons">
+            <button onclick="restartGame()">Restart Game</button>
+            <button onclick="saveGame()">Save Game</button>
+            <button onclick="loadGame()">Load Game</button>
+        </div>
+
     </div>
+
     <div id="messageBox" style="width: 80%; height: 10vh; border: 1px solid black; padding: 10px; overflow-y: auto;">
         <h2>Game Log:</h2>
     </div>
