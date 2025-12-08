@@ -1,108 +1,180 @@
-from flask import Flask, render_template, request
-from components import initialise_board, flip_pieces, legal_move_exists, legal_move, calculate_winner, ai_move, light, dark, none
+"""
+Module providing web server functionality for Othello/Reversi using flask
+
+Imports game logic from components such as:
+- Board initialisation
+- Flipping pieces
+- Checking legal moves
+- Calculating the winner
+- AI move generation
+
+Imports constants:
+- LIGHT
+- DARK
+
+Dependencies: 
+- Flask
+"""
 import json
 import time
+from flask import Flask, render_template, request
+from components import initialise_board, flip_pieces, legal_move_exists, legal_move
+from components import calculate_winner, ai_move, LIGHT, DARK
 
 app = Flask(__name__)
 
 board = initialise_board()
-current_colour = dark
-finished = False
-game_file = "othello_game_file.json"
+CURRENT_COLOUR = DARK
+FINISHED = False
+GAME_FILE = "othello_game_file.json"
 
 @app.route('/')
 def index():
+    """
+    Displays current state of the board using the OthelloBoard.html file
+
+    Returns:
+        HTML page of the board state
+    """
     return render_template('OthelloBoard.html', game_board = board)
-
-
-
-#The function will go on to define how to get the x and y coordinate arguments and store them as variables,
-# and then check that the move is legal, 
-# and if so calculate the outcome of the move.
 
 @app.route('/move')
 def move():
+    """
+    Retrieves (x,y) coords of clicked square, checks if move is legal,
+    applies it if legal and updates the game state.
+    If the game isn't over the ai makes a move after the player,
+    checks to see if game is over and calculates winner if so.
 
-    global board, current_colour, finished
+    Returns:
+        dict: JSON:
+            - status (str, optional): "success" or "fail" depending on move legality or input
+            - board (list[list]): new state of the board
+            - player (str, optional): player after the move
+            - message (str, optional): info about move legality, errors, or outcomes
+            - finished (str, optional): passed only if game is over
+    """
+    global board, CURRENT_COLOUR, FINISHED
 
     # get coords
     try:
         x = int(request.args.get("x"))
         y = int(request.args.get("y"))
-
-    except:
-        return {'status': 'fail', 'board': board, 'message': 'problem with coordinates'}
+    except (TypeError, ValueError):
+        return {'status': 'fail',
+                'board': board,
+                'message': 'problem with coordinates'
+                }
 
     #check legality of move
-    if legal_move(current_colour, (x, y), board) == False:
-        return {'status': 'fail', 'board': board, 'message': 'Illegal move!'}
-    else:
-        flip_pieces(current_colour, (x,y), board)
-
-        current_colour = light
+    if not legal_move(CURRENT_COLOUR, (x, y), board):
+        return {'status': 'fail',
+                'board': board,
+                'message': 'Illegal move!'
+                }
+    flip_pieces(CURRENT_COLOUR, (x,y), board)
+    CURRENT_COLOUR = LIGHT
 
     #if game still in play do ai's turn
-    if finished == False:
+    if not FINISHED:
         ai_square = ai_move(board)
-        if ai_square != None:
+        if ai_square is not None:
             time.sleep(0.20)
-            flip_pieces(light, ai_square, board)
+            flip_pieces(LIGHT, ai_square, board)
             #switch players if ai makes move
-            current_colour = dark
-
+            CURRENT_COLOUR = DARK
 
     #check legal move exists for human if not check ai
-    if legal_move_exists(board, dark) == False:
-
+    if not legal_move_exists(board, DARK):
         #check legal move exists for ai, if not game over
-        if legal_move_exists(board, current_colour) == False:
-            finished = True
+        if not legal_move_exists(board, CURRENT_COLOUR):
+            FINISHED = True
             light_num, dark_num, winner = calculate_winner(board)
-            msg = "Winner is " + winner + " | Light: " + str(light_num) + " | Dark: " + str(dark_num)
-            return {'finished': 'Game Over', 'board': board, 'message': msg}
-        
+            msg = "Winner is " + winner
+            msg += " | Light: " + str(light_num) + " | Dark: " + str(dark_num)
+            return {'finished': 'Game Over',
+                    'board': board,
+                    'message': msg
+                    }
         #if ai can move it has another turn
-        current_colour = light
+        CURRENT_COLOUR = LIGHT
     else:
-        # humans turn
-        current_colour = dark
+        # human's turn
+        CURRENT_COLOUR = DARK
+    return {'status': 'success',
+            'board': board,
+            'player': CURRENT_COLOUR
+            }
 
-
-    return {'status': 'success', 'board': board, 'player': current_colour}
-
-#additional restart board functionality
 @app.route('/restart')
 def restart():
-    global board, current_colour, finished
-    board = initialise_board()
-    current_colour = dark
-    finished = False
-    return {"status": "success", "board": board, "player": current_colour, "message": "Game state restarted"}
+    """
+    Sets the board to its initial state, current player to dark, FINISHED as False
 
-#save game state into json file
+    Returns:
+        dict: 
+            - status (str): "success"
+            - board (list[list]): board that was reset
+            - player (str): new current player after restart
+            - message (str): "Game state restarted"
+    """
+    global board, CURRENT_COLOUR, FINISHED
+    board = initialise_board()
+    CURRENT_COLOUR = DARK
+    FINISHED = False
+    return {'status': 'success',
+            'board': board,
+            'player': CURRENT_COLOUR, 
+            'message': 'Game state restarted'
+            }
+
 @app.route('/save')
 def save():
-    global board, current_colour
+    """
+    Saves the current game state to a .json file.
 
-    data = {'board': board, 'current_colour': current_colour}
-    with open(game_file, "w") as file:
+    Returns:
+        dict: JSON:
+            - status (str): 'success'
+            - message (str): 'Game state saved'
+    """
+    global board, CURRENT_COLOUR
+
+    data = {'board': board, 'current_colour': CURRENT_COLOUR}
+    with open(GAME_FILE, "w", encoding="utf-8") as file:
         json.dump(data, file)
-    return {'status': 'success', 'message': 'Game state saved'}
+    return {'status': 'success',
+            'message': 'Game state saved'
+            }
 
-#attempt to load game state
 @app.route('/load')
 def load():
-    global board, current_colour
+    """
+    Saves the current game state to a .json file.
+
+    Returns:
+        dict: JSON:
+            - status (str): 'success'
+            - board (list[list], optional): board state in file, passed upon success
+            - player (str, optional): current player saved in file, passed upon success
+            - message (str): 'Game state loaded'
+
+    """
+    global board, CURRENT_COLOUR
     try:
-        with open(game_file, "r") as file:
+        with open(GAME_FILE, "r", encoding="utf-8") as file:
             data = json.load(file)
         board = data["board"]
-        current_colour = data["current_colour"]
-        return {'status': 'success', "board": board, "player": current_colour, 'message': 'Game state loaded'}
-    except:
-        return {'status': 'fail', 'message': 'Game state not found'}
-
-
+        CURRENT_COLOUR = data["current_colour"]
+        return {'status': 'success',
+                'board': board, 
+                'player': CURRENT_COLOUR, 
+                'message': 'Game state loaded'
+                }
+    except FileNotFoundError:
+        return {'status': 'fail',
+                'message': 'Game state not found'
+                }
 
 if __name__ == "__main__":
     app.run(debug=True)
