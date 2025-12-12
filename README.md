@@ -1,5 +1,11 @@
-Angelos's Othello Board Game Project
+Othello Board Game Project
 ===================
+
+Author: Angelos Pappas (Angelosp07)
+Licence: MIT Licence
+
+
+
 
 
 ## components.py
@@ -7,7 +13,7 @@ Angelos's Othello Board Game Project
 
 initialise_board() 
 --------------------
-initialises the board as a list of lists, and appends the centre pieces.
+initialises the board as a list of lists, and sets the centre pieces.
 
 <img width="711" height="971" alt="initialise_board()" src="https://github.com/user-attachments/assets/8e1a68b8-46a4-478f-bf8c-d9f3ebbaf248" />
 
@@ -35,7 +41,7 @@ Counts the number of each colour's pieces, compares them, returns them and the w
 
 <img width="731" height="1033" alt="calculate_winner()" src="https://github.com/user-attachments/assets/2ba35ec9-aa21-4825-b244-7dafbe9a6288" />
 
-### AI section
+### AI SECTION:
 
 find_possible_squares() 
 --------------------
@@ -56,42 +62,58 @@ Used to count the squares flipped by each possible move for the AI, and applies 
 <img width="762" height="1093" alt="ai_move()" src="https://github.com/user-attachments/assets/207b42f6-ded8-4dac-a1fa-557637f2c307" />
 
 
-
-
 ## flask_game_engine.py
+### API's:
 
 index()
 --------------------
-Returns the html representation of the board state
-
-load() 
---------------------
-<img width="920" height="856" alt="load()" src="https://github.com/user-attachments/assets/1e073992-1033-44e5-a7c5-bf4ebc67b04f" />
+Returns the html representation of the board state.
 
 move() 
 --------------------
+Retrieves (x,y) coords of clicked square, checks if move is legal, applies it if legal and updates the game state.
+If the game isn't over the ai makes a move after the player, checks to see if game is over and calculates winner if so.
 <img width="909" height="1093" alt="move()" src="https://github.com/user-attachments/assets/91f056cf-5f29-4c6d-b4f8-b36759e09d21" />
 
 restart()
 --------------------
+Uses initialise_board() to set board to original state, sets colour as dark, finished as False.
+
 <img width="631" height="791" alt="restart()" src="https://github.com/user-attachments/assets/8c25283e-4cf5-4ef2-9ab7-bc3a6ea98bf4" />
 
 save() 
 --------------------
+Saves game state (board, current colour) to a .json file called 'othello_game_file.json'.
+
 <img width="631" height="791" alt="save()" src="https://github.com/user-attachments/assets/4c937d40-8d0d-43d2-89c2-bf85860ae37b" />
 
+load() 
+--------------------
+Loads 'othello_game_file.json' and updates game state (board, current colour) with file contents.
 
+<img width="920" height="856" alt="load()" src="https://github.com/user-attachments/assets/1e073992-1033-44e5-a7c5-bf4ebc67b04f" />
+
+## OthelloBoard.html
+### JS FUNCTIONS:
 
 restartGame() 
 --------------------
+calls my /restart api, updates message box
+
 <img width="657" height="762" alt="restartGame()" src="https://github.com/user-attachments/assets/d5e6a9d1-0f09-468b-a117-5673b5e0502f" />
 
 saveGame() 
 --------------------
+calls my /save api, updates message box
+
+
 <img width="865" height="499" alt="saveGame()" src="https://github.com/user-attachments/assets/d3fef91f-24d4-49b3-8af1-83def69ee2a2" />
 
 loadGame() 
 --------------------
+calls my /load api, updates message box
+
+
 <img width="758" height="882" alt="loadGame()" src="https://github.com/user-attachments/assets/81ba7230-e9e3-4ca8-989c-d228f0fb13e9" />
 
 
