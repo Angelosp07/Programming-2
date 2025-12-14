@@ -16,7 +16,6 @@ Dependencies:
 - Flask
 """
 import json
-import time
 from flask import Flask, render_template, request
 from components import initialise_board, flip_pieces, legal_move_exists, legal_move
 from components import calculate_winner, ai_move, LIGHT, DARK
@@ -79,7 +78,6 @@ def move():
     if not FINISHED:
         ai_square = ai_move(board)
         if ai_square is not None:
-            time.sleep(0.20)
             flip_pieces(LIGHT, ai_square, board)
             #switch players if ai makes move
             CURRENT_COLOUR = DARK
@@ -87,7 +85,7 @@ def move():
     #check legal move exists for human if not check ai
     if not legal_move_exists(board, DARK):
         #check legal move exists for ai, if not game over
-        if not legal_move_exists(board, CURRENT_COLOUR):
+        if not legal_move_exists(board, LIGHT):
             FINISHED = True
             light_num, dark_num, winner = calculate_winner(board)
             msg = "Winner is " + winner
@@ -124,7 +122,7 @@ def restart():
     FINISHED = False
     return {'status': 'success',
             'board': board,
-            'player': CURRENT_COLOUR, 
+            'player': CURRENT_COLOUR,
             'message': 'Game state restarted'
             }
 

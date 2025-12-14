@@ -48,6 +48,10 @@ def legal_move(colour, coordinate, board):
 #validate coordinates
     if x < 0 or x > 7 or y < 0 or y > 7:
         return False
+    
+    #validate chosen square
+    if board[y][x] != NONE:
+        return False
 
 #determine opponent
     if colour == DARK:
@@ -61,10 +65,6 @@ def legal_move(colour, coordinate, board):
         (0, -1),         (0, 1),
         (1, -1), (1, 0), (1, 1)
         ]
-
-#validate chosen square
-    if board[y][x] != NONE:
-        return False
 
 #main part
     # for each vector transformation
